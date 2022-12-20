@@ -1,0 +1,90 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  color: red;
+}
+
+h2 {
+  margin: 10px 0;
+  padding: 0;
+}
+
+.content-container {
+  display: grid;
+  grid-template-columns: minmax(150px, 250px) 1fr;
+  height: 100vh;
+}
+
+.projects-container {
+  background-color: lightgreen;
+  padding: 0px 0px;
+}
+
+.projects-container h2,
+.projects-container button {
+  margin-left: 10px;
+}
+
+.project {
+  margin: 20px 0px;
+  padding: 5px 10px;
+  display: grid;
+  gap: 5px;
+  /* grid-template-columns: 1fr 20px; */
+  grid-template-columns: minmax(150px, 250px) 20px;
+  background-color: rgb(72, 217, 72);
+  color: black;
+  justify-content: space-between;
+
+  max-width: 1000px;
+}
+
+.project-text {
+  /* white-space: nowrap; */
+  /* overflow-wrap: break-word; */
+  overflow: auto;
+  /* word-break: break-all; */
+}
+
+.project-active {
+  background-color: green;
+  filter: brightness(120%);
+  color: white;
+}
+
+.close-project {
+  width: 20px;
+  margin-left: auto;
+}
+
+.cards-supercontainer {
+  padding-left: 20px;
+}
+
+.cards-container {
+  margin: 20px 0px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* padding-left: 20px; */
+  /* grid-template-columns: repeat(2, 100px); */
+  gap: 20px;
+  width: 800px;
+}
+
+.card {
+  background-color: lightskyblue;
+  border-radius: 5px;
+  width: 150px;
+  padding: 10px 10px;
+  height: 300px;
+}
+
+.close-card {
+  width: 20px;
+  margin-left: 100%;
+  position: relative;
+  left: -20px;
+}
