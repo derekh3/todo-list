@@ -1,15 +1,6 @@
 import "./style.css";
 import Close from "./close.svg";
 
-function component() {
-  const element = document.createElement("div");
-
-  // Lodash, currently included via a script, is required for this line to work
-  element.innerHTML = "Hello2";
-
-  return element;
-}
-
 function todoFactory(title, description, dueDate, priority) {
   // function setTitle(newTitle) {
   //   this.title = newTitle;
@@ -120,13 +111,27 @@ const AppController = (() => {
   };
 
   const addTodo = () => {
-    let title = prompt("Title?");
-    let description = prompt("Description?");
-    let dueDate = prompt("Due date?");
-    let priority = prompt("Priority?");
+    // let title = prompt("Title?");
+    // let description = prompt("Description?");
+    // let dueDate = prompt("Due date?");
+    // let priority = prompt("Priority?");
+    let title = "";
+    let description = "";
+    let dueDate = "";
+    let priority = "";
     let todo = todoFactory(title, description, dueDate, priority);
-    console.log(projects[currentProject]);
     projects[currentProject].todoArray.push(todo);
+    DOMController.openTodo(
+      currentProject,
+      projects[currentProject].todoArray.length - 1,
+      todo
+    );
+  };
+
+  const editTodo = (projectKey, todoIndex, todo) => {
+    projects[projectKey].todoArray[todoIndex] = todo;
+    DOMController.hideTodos();
+    displayTodos();
   };
 
   return {
@@ -139,12 +144,16 @@ const AppController = (() => {
     switchProject,
     deleteTodo,
     addTodo,
+    editTodo,
   };
 })();
 
 const DOMController = ((doc) => {
   const content = doc.querySelector(".cards-container");
+  const everything = doc.querySelector(".content-container");
   const projectsList = doc.querySelector(".projects-list");
+  const openTodoModal = doc.querySelector(".modal.open-todo");
+  const body = doc.getElementsByTagName("body");
 
   const addTodoBtn = doc.querySelector(".add-todo");
   addTodoBtn.onclick = () => {
@@ -214,18 +223,28 @@ const DOMController = ((doc) => {
 
     let todoTitle = doc.createElement("div");
     let todoDescription = doc.createElement("p");
+    todoDescription.classList.add("card-description");
     let todoDueDate = doc.createElement("p");
     let todoPriority = doc.createElement("p");
+    let todoOpen = doc.createElement("button");
+
     todoTitle.textContent = todo.title;
     todoDescription.textContent = todo.description;
-    todoDueDate.textContent = todo.dueDate;
-    todoPriority.textContent = todo.priority;
+    todoDueDate.textContent = `Due: ${todo.dueDate}`;
+    todoPriority.textContent = `Priority: ${todo.priority}`;
+    todoOpen.textContent = "Open";
+
+    todoOpen.onclick = () => {
+      // blurBackground();
+      openTodo(projectKey, todoIndex, todo);
+    };
 
     todoElement.appendChild(closeIcon);
     todoElement.appendChild(todoTitle);
-    todoElement.appendChild(todoDescription);
+    // todoElement.appendChild(todoDescription);
     todoElement.appendChild(todoDueDate);
     todoElement.appendChild(todoPriority);
+    todoElement.appendChild(todoOpen);
     content.appendChild(todoElement);
   };
   const hideTodos = () => {
@@ -235,22 +254,87 @@ const DOMController = ((doc) => {
   const hideProjects = () => {
     projectsList.innerHTML = "";
   };
+
+  const openTodo = (projectKey, todoIndex, todo) => {
+    let openTodoModalContent = doc.querySelector(".open-todo.modal-content");
+
+    openTodoModal.className = "modal open-todo is-visuallyHidden";
+    setTimeout(function () {
+      openTodoModal.className = "modal open-todo";
+    }, 100);
+    everything.className = "content-container is-blurred";
+
+    let closeIcon = new Image();
+    closeIcon.src = Close;
+    closeIcon.classList.add("close-modal");
+    closeIcon.onclick = () => {
+      openTodoModal.className = "modal open-todo is-hidden is-visuallyHidden";
+      // body.className = "";
+      everything.className = "content-container";
+      todo.title = todoTitle.value;
+      todoDescription.textContent = todoDescription.value;
+      todo.description = todoDescription.textContent;
+      todo.dueDate = todoDueDate.value;
+      todo.priority = todoPriority.value;
+      AppController.editTodo(projectKey, todoIndex, todo);
+    };
+
+    let titleLabel = doc.createElement("label");
+    let descriptionLabel = doc.createElement("label");
+    let dueDateLabel = doc.createElement("label");
+    let priorityLabel = doc.createElement("label");
+
+    titleLabel.setAttribute("for", "modal-title");
+    descriptionLabel.setAttribute("for", "modal-description");
+    dueDateLabel.setAttribute("for", "modal-dueDate");
+    priorityLabel.setAttribute("for", "modal-priority");
+
+    titleLabel.textContent = "Title";
+    descriptionLabel.textContent = "Description";
+    dueDateLabel.textContent = "Due date";
+    priorityLabel.textContent = "Priority";
+
+    let todoTitle = doc.createElement("input");
+    let todoDescription = doc.createElement("textarea");
+    let todoDueDate = doc.createElement("input");
+    let todoPriority = doc.createElement("input");
+
+    todoTitle.setAttribute("value", `${todo.title}`);
+    todoDescription.textContent = `${todo.description}`;
+    todoDueDate.setAttribute("value", `${todo.dueDate}`);
+    todoPriority.setAttribute("value", `${todo.priority}`);
+
+    todoTitle.setAttribute("id", "modal-title");
+    todoDescription.setAttribute("id", "modal-description");
+    todoDueDate.setAttribute("id", "modal-dueDate");
+    todoPriority.setAttribute("id", "modal-priority");
+
+    openTodoModalContent.innerHTML = "";
+
+    openTodoModalContent.appendChild(closeIcon);
+
+    openTodoModalContent.appendChild(titleLabel);
+    openTodoModalContent.appendChild(todoTitle);
+
+    openTodoModalContent.appendChild(descriptionLabel);
+    openTodoModalContent.appendChild(todoDescription);
+
+    openTodoModalContent.appendChild(dueDateLabel);
+    openTodoModalContent.appendChild(todoDueDate);
+
+    openTodoModalContent.appendChild(priorityLabel);
+    openTodoModalContent.appendChild(todoPriority);
+  };
+
   return {
     displayTodo,
     addProjectToList,
     hideTodos,
     hideProjects,
     activateDefaultProject,
+    openTodo,
   };
 })(document);
-
-// const testTodo = todoFactory("Test", "testtest", "July 3, 1991", "high");
-// testTodo.title = "HAHAH";
-// const testElement = document.createElement("div");
-// testElement.textContent = testTodo.title;
-// document.body.appendChild(component());
-// console.log(testTodo.title);
-// document.body.appendChild(testElement);
 
 AppController.createDefaultProject();
 AppController.displayProjects();
