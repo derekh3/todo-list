@@ -32,7 +32,7 @@ function projectFactory(name, todoArray) {
 }
 
 const AppController = (() => {
-  const projects = {};
+  let projects = {};
   let currentProject = "default";
   let projectsCounter = 1;
   const createDefaultProject = () => {
@@ -65,6 +65,7 @@ const AppController = (() => {
     if (Object.keys(projects).length === 1) {
       currentProject = key;
     }
+    populateStorage();
   };
 
   const deleteProject = (projectKey) => {
@@ -74,6 +75,7 @@ const AppController = (() => {
     delete projects[projectKey];
     DOMController.hideProjects();
     displayProjects();
+    populateStorage();
   };
 
   const displayDefaultProject = () => {
@@ -85,7 +87,7 @@ const AppController = (() => {
   const displayProjects = () => {
     for (var key in projects) {
       if (projects.hasOwnProperty(key)) {
-        DOMController.addProjectToList(key, projects[key].name);
+        DOMController.addProjectToList(key, projects[key].name, currentProject);
       }
     }
   };
@@ -101,16 +103,19 @@ const AppController = (() => {
       );
     }
   };
+
   const switchProject = (key) => {
     currentProject = key;
     DOMController.hideTodos();
     displayTodos(key);
+    populateStorage();
   };
 
   const deleteTodo = (projectKey, todoIndex) => {
     projects[projectKey].todoArray.splice(todoIndex, 1);
     DOMController.hideTodos();
     displayTodos(projectKey);
+    populateStorage();
   };
 
   const addTodo = () => {
@@ -135,6 +140,7 @@ const AppController = (() => {
     projects[projectKey].todoArray[todoIndex] = todo;
     DOMController.hideTodos();
     displayTodos();
+    populateStorage();
   };
 
   const toggleComplete = (projectKey, todoIndex) => {
@@ -143,6 +149,27 @@ const AppController = (() => {
         ? false
         : true;
     console.log(projects[projectKey].todoArray[todoIndex].completed);
+    populateStorage();
+  };
+
+  const populateStorage = () => {
+    if (StorageController.storageAvailable("localStorage")) {
+      localStorage.setItem("projects", JSON.stringify(projects));
+      console.log("storing");
+      console.log(projects);
+      localStorage.setItem("currentProject", currentProject);
+      console.log("Getting");
+      console.log(JSON.parse(localStorage.getItem("projects")));
+      localStorage.setItem("projectsCounter", projectsCounter);
+    }
+  };
+
+  const retrieveStorage = () => {
+    console.log(localStorage.getItem("projects"));
+    projects = JSON.parse(localStorage.getItem("projects"));
+    currentProject = localStorage.getItem("currentProject");
+    console.log(localStorage.getItem("currentProject"));
+    projectsCounter = localStorage.getItem("projectsCounter");
   };
 
   return {
@@ -157,6 +184,8 @@ const AppController = (() => {
     addTodo,
     editTodo,
     toggleComplete,
+    populateStorage,
+    retrieveStorage,
   };
 })();
 
@@ -189,7 +218,7 @@ const DOMController = ((doc) => {
     }
   };
 
-  const addProjectToList = (key, projectName) => {
+  const addProjectToList = (key, projectName, currentProject) => {
     let newProject = doc.createElement("div");
     newProject.classList.add("project");
     let projectText = doc.createElement("div");
@@ -217,7 +246,8 @@ const DOMController = ((doc) => {
       e.stopPropagation();
     };
     newProject.appendChild(closeIcon);
-    if (projectsList.innerHTML === "") {
+    // if (projectsList.innerHTML === "") {
+    if (key === currentProject) {
       newProject.classList.add("project-active");
     }
     projectsList.appendChild(newProject);
@@ -381,6 +411,54 @@ const DOMController = ((doc) => {
   };
 })(document);
 
-AppController.createDefaultProject();
-AppController.displayProjects();
-AppController.displayDefaultProject();
+const StorageController = (() => {
+  function storageAvailable(type) {
+    let storage;
+    try {
+      storage = window[type];
+      const x = "__storage_test__";
+      storage.setItem(x, x);
+      storage.removeItem(x);
+      return true;
+    } catch (e) {
+      return (
+        e instanceof DOMException &&
+        // everything except Firefox
+        (e.code === 22 ||
+          // Firefox
+          e.code === 1014 ||
+          // test name field too, because code might not be present
+          // everything except Firefox
+          e.name === "QuotaExceededError" ||
+          // Firefox
+          e.name === "NS_ERROR_DOM_QUOTA_REACHED") &&
+        // acknowledge QuotaExceededError only if there's something already stored
+        storage &&
+        storage.length !== 0
+      );
+    }
+  }
+
+  return { storageAvailable };
+})();
+
+let loadFromStorage = false;
+if (StorageController.storageAvailable("localStorage")) {
+  let obj = JSON.parse(localStorage.getItem("projects"));
+  if (obj) {
+    let project = obj[Object.keys(obj)[0]];
+    if (Object.hasOwn(project, "todoArray")) {
+      loadFromStorage = true;
+    }
+  }
+}
+
+if (loadFromStorage) {
+  AppController.retrieveStorage();
+  AppController.displayProjects();
+  AppController.displayTodos();
+} else {
+  AppController.createDefaultProject();
+  AppController.displayProjects();
+  AppController.displayDefaultProject();
+}
