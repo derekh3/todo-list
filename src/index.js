@@ -1,7 +1,7 @@
 import "./style.css";
 import Close from "./close.svg";
 
-function todoFactory(title, description, dueDate, priority) {
+function todoFactory(title, description, dueDate, priority, completed = false) {
   // function setTitle(newTitle) {
   //   this.title = newTitle;
   // }
@@ -19,6 +19,7 @@ function todoFactory(title, description, dueDate, priority) {
     description,
     dueDate,
     priority,
+    completed,
     // setTitle,
     // setDescription,
     // setDueDate,
@@ -39,13 +40,15 @@ const AppController = (() => {
       "todo 1",
       "test project 1",
       "July 1, 2023",
-      "medium"
+      "medium",
+      false
     );
     const todo2 = todoFactory(
       "todo 2",
       "test project 2",
       "July 2, 2023",
-      "high"
+      "high",
+      false
     );
     const defaultProject = projectFactory("Example Project", [todo1, todo2]);
     projects["default"] = defaultProject;
@@ -134,6 +137,14 @@ const AppController = (() => {
     displayTodos();
   };
 
+  const toggleComplete = (projectKey, todoIndex) => {
+    projects[projectKey].todoArray[todoIndex].completed =
+      projects[projectKey].todoArray[todoIndex].completed === true
+        ? false
+        : true;
+    console.log(projects[projectKey].todoArray[todoIndex].completed);
+  };
+
   return {
     createProject,
     deleteProject,
@@ -145,10 +156,13 @@ const AppController = (() => {
     deleteTodo,
     addTodo,
     editTodo,
+    toggleComplete,
   };
 })();
 
 const DOMController = ((doc) => {
+  let checkboxCounter = 0;
+
   const content = doc.querySelector(".cards-container");
   const everything = doc.querySelector(".content-container");
   const projectsList = doc.querySelector(".projects-list");
@@ -222,16 +236,46 @@ const DOMController = ((doc) => {
     };
 
     let todoTitle = doc.createElement("div");
+    todoTitle.classList.add("todo-title");
     let todoDescription = doc.createElement("p");
     todoDescription.classList.add("card-description");
     let todoDueDate = doc.createElement("p");
+    todoDueDate.classList.add("todo-dueDate");
     let todoPriority = doc.createElement("p");
+    todoPriority.classList.add("todo-priority");
+
+    let todoCheckboxContainer = doc.createElement("div");
+    todoCheckboxContainer.classList.add("checkbox-container");
+    let todoCheckboxLabel = doc.createElement("label");
+    todoCheckboxLabel.setAttribute("for", `checkbox-${checkboxCounter}`);
+    todoCheckboxLabel.textContent = "Completed:";
+    let todoCheckbox = doc.createElement("input");
+    todoCheckbox.classList.add("checkbox");
+    todoCheckbox.setAttribute("type", "checkbox");
+    todoCheckbox.setAttribute("id", `checkbox-${checkboxCounter}`);
+    checkboxCounter++;
+
+    console.log(todo.title);
+    console.log(todo.completed);
+    if (todo.completed) {
+      todoCheckbox.checked = true;
+    } else {
+      todoCheckbox.checked = false;
+    }
+    todoCheckbox.onclick = () => {
+      AppController.toggleComplete(projectKey, todoIndex);
+    };
+
+    todoCheckboxContainer.appendChild(todoCheckboxLabel);
+    todoCheckboxContainer.appendChild(todoCheckbox);
+
     let todoOpen = doc.createElement("button");
 
     todoTitle.textContent = todo.title;
     todoDescription.textContent = todo.description;
     todoDueDate.textContent = `Due: ${todo.dueDate}`;
     todoPriority.textContent = `Priority: ${todo.priority}`;
+
     todoOpen.textContent = "Open";
 
     todoOpen.onclick = () => {
@@ -244,6 +288,7 @@ const DOMController = ((doc) => {
     // todoElement.appendChild(todoDescription);
     todoElement.appendChild(todoDueDate);
     todoElement.appendChild(todoPriority);
+    todoElement.appendChild(todoCheckboxContainer);
     todoElement.appendChild(todoOpen);
     content.appendChild(todoElement);
   };

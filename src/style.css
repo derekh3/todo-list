@@ -78,6 +78,7 @@ button:hover {
 .close-project {
   width: 20px;
   margin-left: auto;
+  cursor: pointer;
 }
 
 .cards-supercontainer {
@@ -109,6 +110,30 @@ button:hover {
   height: 200px;
   overflow: hidden;
   /* margin: 0 20px; */
+  position: relative;
+}
+
+.todo-title {
+  font-weight: 600;
+  max-height: 2.1rem;
+  overflow: hidden;
+}
+
+.todo-dueDate,
+.todo-priority {
+  max-height: 1.1rem;
+  overflow: hidden;
+}
+
+.checkbox {
+  /* Double-sized Checkboxes */
+  -ms-transform: scale(1.5); /* IE */
+  -moz-transform: scale(1.5); /* FF */
+  -webkit-transform: scale(1.5); /* Safari and Chrome */
+  -o-transform: scale(1.5); /* Opera */
+  transform: scale(1.5);
+  padding: 10px;
+  margin-left: 10px;
 }
 
 /* .card-description {
@@ -118,9 +143,8 @@ button:hover {
 } */
 
 .card button {
-  margin-top: 100%;
-  position: relative;
-  top: -120px;
+  position: absolute;
+  top: 170px;
 }
 
 .close-card {
@@ -128,6 +152,7 @@ button:hover {
   margin-left: 100%;
   position: relative;
   left: -20px;
+  cursor: pointer;
 }
 
 /* .modal {
